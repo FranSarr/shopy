@@ -2,10 +2,10 @@ import Head from 'next/head'
 import Link from 'next/link'
 
 import prisma from 'lib/prisma'
-import { getProduct } from 'lib/data'
+import { getProduct, alreadyPurchased } from 'lib/data'
 
 import Heading from 'components/Heading'
-import { useSession } from 'next-auth/react'
+import { useSession, getSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 
 
