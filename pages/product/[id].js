@@ -9,7 +9,7 @@ import { useSession, getSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 
 
-export default function Product({ product }) {
+export default function Product({ product, purchased }) {
   const { data: session, status } = useSession()
   const router = useRouter()
 
@@ -53,10 +53,14 @@ export default function Product({ product }) {
 
             <div className=''>
             {!session && <p>Login first</p>}
+          
           {session && (
 	          <>
+                  {purchased ? (
+                    'Already purchased'
+                  ) : (
+                    <>   
 		      {session.user.id !== product.author.id ? (
-
 		       <button
            className='text-sm border p-2 font-bold uppercase'
            onClick={async () => {
@@ -111,6 +115,8 @@ export default function Product({ product }) {
 	      	  'Your product'
 	        	)}
              </>
+             )}
+             </>
               )}
             </div>
           </div>
@@ -131,12 +137,21 @@ export default function Product({ product }) {
 }
 
 export async function getServerSideProps(context) {
+  const session = await getSession(context)
+
   let product = await getProduct(context.params.id, prisma)
 	product = JSON.parse(JSON.stringify(product))
-
+  let purchased = null
+  if (session) {
+    purchased = await alreadyPurchased(
+      { author: session.user.id, product: context.params.id },
+      prisma
+    )
+  }
   return {
     props: {
       product,
+      purchased,
     },
   }
 }
