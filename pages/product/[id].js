@@ -29,6 +29,7 @@ export default function Product({ product }) {
         <title>Digital Downloads</title>
         <meta name='description' content='Digital Downloads Website' />
         <link rel='icon' href='/favicon.ico' />
+        <script src='https://js.stripe.com/v3/' async></script>
       </Head>
 
       <Heading />
@@ -72,6 +73,33 @@ export default function Product({ product }) {
          
                router.push('/dashboard')
              } else {
+              const res = await fetch('/api/stripe/session', {
+                body: JSON.stringify({
+                  amount: product.price,
+                  title: product.title,
+                  product_id: product.id,
+                }),
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                method: 'POST',
+              })
+        
+              const data = await res.json()
+              if (data.status === 'error') {
+                alert(data.message)
+                return
+              }
+        
+              const sessionId = data.sessionId
+              const stripePublicKey = data.stripePublicKey
+        
+              const stripe = Stripe(stripePublicKey)
+              const { error } = await stripe.redirectToCheckout(
+                {
+                  sessionId,
+                }
+              )
          
              }    
            }}
