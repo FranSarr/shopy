@@ -5,8 +5,20 @@ import prisma from 'lib/prisma'
 import { getProduct } from 'lib/data'
 
 import Heading from 'components/Heading'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/router'
+
 
 export default function Product({ product }) {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  const loading = status === 'loading'
+
+  if (loading) {
+    return null
+  }
+
   if (!product) {
     return null
   }
@@ -37,12 +49,44 @@ export default function Product({ product }) {
                 <p>${product.price / 100}</p>
               )}
             </div>
+
             <div className=''>
-              <button className='text-sm border p-2 font-bold uppercase'>
-                PURCHASE
-              </button>
+            {!session && <p>Login first</p>}
+          {session && (
+	          <>
+		      {session.user.id !== product.author.id ? (
+
+		       <button
+           className='text-sm border p-2 font-bold uppercase'
+           onClick={async () => {
+             if (product.free) {
+               await fetch('/api/download', {
+                 body: JSON.stringify({
+                   product_id: product.id,
+                 }),
+                 headers: {
+                   'Content-Type': 'application/json',
+                 },
+                 method: 'POST',
+               })
+         
+               router.push('/dashboard')
+             } else {
+         
+             }    
+           }}
+         >
+           {product.free ? 'DOWNLOAD' : 'PURCHASE'}
+         </button>
+
+	        	) : (
+	      	  'Your product'
+	        	)}
+             </>
+              )}
             </div>
           </div>
+
           <div className='mb-10'>
             {product.description}
           </div>
