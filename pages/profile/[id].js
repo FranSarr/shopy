@@ -1,10 +1,12 @@
 import Head from 'next/head'
-import Heading from 'components/Heading'
 import Link from 'next/link'
-import { getProducts } from 'lib/data'
-import prisma from 'lib/prisma'
 
-export default function Home({products}) {
+import prisma from 'lib/prisma'
+import { getProducts, getUser } from 'lib/data'
+
+import Heading from 'components/Heading'
+
+export default function Profile({ user, products }) {
   return (
     <div>
       <Head>
@@ -13,11 +15,10 @@ export default function Home({products}) {
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
-      
       <Heading />
 
       <h1 className='flex justify-center mt-20 text-xl'>
-        Explore the most popular products
+        Products made by {user.name}
       </h1>
 
       <div className='flex justify-center mt-10'>
@@ -55,12 +56,17 @@ export default function Home({products}) {
     </div>
   )
 }
+
 export async function getServerSideProps(context) {
-  let products = await getProducts({ take: 3 }, prisma)
+  let user = await getUser(context.params.id, prisma)
+	user = JSON.parse(JSON.stringify(user))
+
+  let products = await getProducts({ author: context.params.id }, prisma)
 	products = JSON.parse(JSON.stringify(products))
 
   return {
     props: {
+      user,
       products,
     },
   }
